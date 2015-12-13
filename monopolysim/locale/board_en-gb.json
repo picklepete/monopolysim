@@ -1,0 +1,213 @@
+[
+  	{
+		"name": "GO",
+		"type": "go"
+	},
+  	{
+		"name": "Old Kent Road",
+		"group": "brown",
+		"value": 60,
+		"type": "property"
+	},
+	{
+		"name": "Community Chest",
+		"type": "community_chest"
+	},
+	{
+		"name": "Whitechapel Road",
+		"group": "brown",
+		"value": 60,
+		"type": "property"
+	},
+	{
+		"name": "Income Tax",
+		"tax": 200,
+		"type": "tax"
+	},
+	{
+		"name": "King's Cross Station",
+		"value": 200,
+		"type": "station"
+	},
+	{
+		"name": "The Angel Islington",
+		"group": "lightblue",
+		"value": 100,
+		"type": "property"
+	},
+	{
+		"name": "Chance",
+		"type": "chance"
+	},
+	{
+		"name": "Euston Road",
+		"group": "lightblue",
+		"value": 100,
+		"type": "property"
+	},
+	{
+		"name": "Pentonville Road",
+		"group": "lightblue",
+		"value": 120,
+		"type": "property"
+	},
+	{
+		"name": "Jail",
+		"type": "jail"
+	},
+	{
+		"name": "Pall Mall",
+		"group": "pink",
+		"value": 140,
+		"type": "property"
+	},
+	{
+		"name": "Electric Company",
+		"type": "utilities"
+	},
+	{
+		"name": "Whitehall",
+		"group": "pink",
+		"value": 140,
+		"type": "property"
+	},
+	{
+		"name": "Northumberland Avenue",
+		"group": "pink",
+		"value": 140,
+		"type": "property"
+	},
+	{
+		"name": "Marylebone Station",
+		"value": 200,
+		"type": "station"
+	},
+	{
+		"name": "Bow Street",
+		"group": "orange",
+		"value": 180,
+		"type": "property"
+	},
+	{
+		"name": "Community Chest",
+		"type": "community_chest"
+	},
+	{
+		"name": "Marlborough Street",
+		"group": "orange",
+		"value": 180,
+		"type": "property"
+	},
+	{
+		"name": "Vine Street",
+		"group": "orange",
+		"value": 180,
+		"type": "property"
+	},
+	{
+		"name": "Free Parking",
+		"type": "freeparking"
+	},
+	{
+		"name": "Strand",
+		"group": "red",
+		"value": 220,
+		"type": "property"
+	},
+	{
+		"name": "Chance",
+		"type": "chance"
+	},
+	{
+		"name": "Fleet Street",
+		"group": "red",
+		"value": 220,
+		"type": "property"
+	},
+	{
+		"name": "Trafalgar Square",
+		"group": "red",
+		"value": 240,
+		"type": "property"
+	},
+	{
+		"name": "Fenchurch St Station",
+		"value": 200,
+		"type": "station"
+	},
+	{
+		"name": "Leicester Square",
+		"group": "yellow",
+		"value": 260,
+		"type": "property"
+	},
+	{
+		"name": "Coventry Street",
+		"group": "yellow",
+		"value": 260,
+		"type": "property"
+	},
+	{
+		"name": "Water Works",
+		"value": 150,
+		"type": "utilities"
+	},
+	{
+		"name": "Picadilly",
+		"group": "yellow",
+		"value": 280,
+		"type": "property"
+	},
+	{
+		"name": "Go to Jail",
+		"type": "gotojail"
+	},
+	{
+		"name": "Regent Street",
+		"group": "green",
+		"value": 300,
+		"type": "property"
+	},
+	{
+		"name": "Oxford Street",
+		"group": "green",
+		"value": 300,
+		"type": "property"
+	},
+	{
+		"name": "Community Chest",
+		"type": "community_chest"
+	},
+	{
+		"name": "Bond Street",
+		"group": "green",
+		"value": 320,
+		"type": "property"
+	},
+	{
+		"name": "Liverpool Street Station",
+		"value": 200,
+		"type": "station"
+	},
+	{
+		"name": "Chance",
+		"type": "chance"
+	},
+	{
+		"name": "Park Lane",
+		"group": "darkblue",
+		"value": 350,
+		"type": "property"
+	},
+	{
+		"name": "Super Tax",
+		"tax": 100,
+		"type": "tax"
+	},
+	{
+		"name": "Mayfair",
+		"group": "darkblue",
+		"value": 400,
+		"type": "property"
+	}
+]
