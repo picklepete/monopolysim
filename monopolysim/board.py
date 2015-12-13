@@ -91,11 +91,11 @@ class Board(object):
 
     def initialize_turns(self):
         """
-        For each player
-            Roll a die
-            If the die matches one in the set
-            Both players re-roll
+        Determines the order in which our players take turns. This is
+        decided by rolling a die. If players have the same die value,
+        they all re-roll until we have a valid sorting.
         """
+        # TODO: implement this.
         pass
 
     def handle_turn(self, player):
