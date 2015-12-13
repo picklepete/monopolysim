@@ -55,3 +55,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Custom
+monopolysim/sim.log
+monopolysim/NOTES.md
