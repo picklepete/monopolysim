@@ -22,6 +22,7 @@ class Player(object):
         self.cash = kwargs.get('cash', 0)
         self.token = kwargs.get('token', None)
         self.in_jail = kwargs.get('in_jail', False)
+        self.jail_exit_rolls = kwargs.get('jail_exit_rolls', 0)
         self.bankrupt = kwargs.get('bankrupt', False)
         self.nickname = kwargs.get('nickname', 'Anonymous')
         self.portfolio = kwargs.get('portfolio', [])
@@ -29,6 +30,22 @@ class Player(object):
 
     def __repr__(self):
         return '<Player: %s>' % str(self.nickname)
+
+    def jail_exit_choice(self):
+        """
+        Based on this player's AI, returns their preferred method of
+        leaving jail. The available options are:
+
+        1. Pay a fine of 50 and continue on their next turn
+        2. Purchase a "Get Out Of Jail Free" card from another player
+        3. Use a "Get Out Of Jail Free" card if they have one
+        4. Wait there for three turns, rolling the dice on each turn to try to roll a double.
+           If they roll a double on any turn, move out of Jail using this dice roll.
+
+        Until the AI system has been implemented, this method will pick "wait".
+        """
+        # TODO: implement using the "Get Out Of Jail Free" card when the Cards system has been built.
+        return 'wait'
 
     def handle_land_on_tile(self, tile):
         """
