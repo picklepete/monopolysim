@@ -11,9 +11,6 @@ class BoardTestCase(TestCase):
     def _mock_roll_dice_double(self):
         return 1, 1
 
-    def _mock_jail_exit_choice(self):
-        return 'wait'
-
     def _mock_handle_play_turn_noop(self, *args, **kwargs):
         pass
 
@@ -46,6 +43,23 @@ class BoardTestCase(TestCase):
         board.setup()
         player = board.players[0]
 
+    def test_board_handle_jail_turn_exit_pay(self):
+        board = Board(num_players=1, locale='en-gb')
+        board.setup()
+
+        player = board.players[0]
+        player.in_jail = True
+
+        def mock_jail_exit_choice():
+            return 'pay'
+        setattr(player, 'jail_exit_choice', mock_jail_exit_choice)
+
+        previous_cash = player.cash
+        board.handle_jail_turn(player)
+        self.assertFalse(player.in_jail)
+        self.assertEqual(player.jail_exit_rolls, 0)
+        self.assertEqual(player.cash, previous_cash - 50)
+
     def test_board_handle_jail_turn_exit_full_duration(self):
         board = Board(num_players=1, locale='en-gb')
         board.setup()
@@ -53,8 +67,11 @@ class BoardTestCase(TestCase):
         player = board.players[0]
         player.in_jail = True
 
+        def mock_jail_exit_choice():
+            return 'wait'
+
         setattr(player, 'roll_dice', self._mock_roll_dice_single)
-        setattr(player, 'jail_exit_choice', self._mock_jail_exit_choice)
+        setattr(player, 'jail_exit_choice', mock_jail_exit_choice)
 
         board.handle_jail_turn(player)
         self.assertTrue(player.in_jail)
@@ -81,8 +98,11 @@ class BoardTestCase(TestCase):
         player = board.players[0]
         player.in_jail = True
 
+        def mock_jail_exit_choice():
+            return 'wait'
+
         setattr(player, 'roll_dice', self._mock_roll_dice_single)
-        setattr(player, 'jail_exit_choice', self._mock_jail_exit_choice)
+        setattr(player, 'jail_exit_choice', mock_jail_exit_choice)
 
         # Mock handle_play_turn, or a maximum recursion depth exceeded
         # exception is thrown because the rules dictate that a  double

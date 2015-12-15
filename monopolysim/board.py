@@ -118,7 +118,11 @@ class Board(object):
         then make us pick one of the four conditions.
         """
         turn_decision = player.jail_exit_choice()
-        if turn_decision == 'wait':
+        if turn_decision == 'pay':
+            player.in_jail = False
+            player.jail_exit_rolls = 0
+            player.wallet.withdraw(50)
+        elif turn_decision == 'wait':
             if player.jail_exit_rolls == self.max_jail_exit_rolls:
                 player.in_jail = False
                 player.wallet.withdraw(50)
