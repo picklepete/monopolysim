@@ -43,11 +43,20 @@ class Board(object):
         self.num_players = num_players
         self.locale = locale
 
+        # The total number of tiles on the board.
+        self.total_tile_count = 0
+
         # How much money the players initially receive.
         self.initial_player_deposit = 2500
 
         # How many jail roll turns does it take to exit?
         self.max_jail_exit_rolls = 3
+
+        # The total number of hotels which can exist on the board.
+        self.max_hotels = 12
+
+        # The total number of houses which can exist on the board.
+        self.max_houses = 32
 
     def initialize_board(self):
         """
@@ -80,6 +89,9 @@ class Board(object):
             tile_template['step'] = tile_step + 1
             tile = tile_map[tile_type](**tile_template)
             self.tiles.append(tile)
+
+        # Update the total tile count.
+        self.total_tile_count = len(self.tiles)
 
     def initialize_players(self):
         """
@@ -160,42 +172,80 @@ class Board(object):
     def handle_play_turn(self, player, dice_roll=None):
         """
         Responsible for handling a player's current turn.
-
-        1. Player rolls.
-        2. Player moves to their destination tile.
-        3. For each tile on the way there, they trigger on_transit.
-        4. At the destination tile, player triggers on_visit.
         """
+        # Let the player decide if they wish to purchase houses or hotels.
+        player.construct_houses()
+
+        # If a dice roll hasn't been given to it, roll.
         if not dice_roll:
             dice_roll = player.roll_dice()
+            if dice_roll is None:
+                # The player has rolled three doubles in a roll.
+                return
+
+        # Count the number of tiles we're moving.
         tile_moves = sum(dice_roll)
         logging.debug('%s rolled a %d and %d.' % (player.nickname, dice_roll[0], dice_roll[1]))
 
-        num_tiles = len(self.tiles)
-        if (player.tile.step + tile_moves) > num_tiles:
-            dest_tile_step = (player.tile.step + tile_moves) - num_tiles
+        # Whether or not this roll takes us around the board again.
+        circular_roll = False
+
+        # If the player's current tile, plus the number of tiles we're moving to (based on our
+        # dice roll) is more than the total number of times, we're going around the board passed
+        # the GO tile. To get the correct `dest_tile_step` we add the current step plus the tile
+        # moves and subtract the total number of times.
+        if (player.tile.step + tile_moves) > self.total_tile_count:
+            circular_roll = True
+            dest_tile_step = (player.tile.step + tile_moves) - self.total_tile_count
         else:
+            # If we aren't about to go around the board, the `dest_tile_step` is simply the current
+            # tile's step plus the total moves the player has rolled on their dice.
             dest_tile_step = player.tile.step + tile_moves
 
+        # The tiles we've found that the user is going to journey through.
+        # These tiles should always be between the player's NEXT tile and
+        # up to and including their destination tile.
+        journey_tiles = []
+
+        # Iterate over each tile...
         for tile in self.tiles:
 
-            # If our roll takes us over GO, and we start board from the first tile again...
-            if (player.tile.step + tile_moves) > num_tiles:
+            # If our roll takes us over GO...
+            if circular_roll:
                 # A valid tile is between the player's current tile, and the end of the board,
                 # OR, if the tile's step is below the destination tile's step.
-                valid_tile = player.tile.step <= tile.step <= num_tiles or tile.step <= dest_tile_step
+                if player.tile.step < tile.step <= self.total_tile_count or tile.step <= dest_tile_step:
+                    journey_tiles.append(tile)
             else:
                 # If the roll doesn't take us across go, a valid next tile is
                 # between the player's current tile and the destination tile.
-                valid_tile = player.tile.step < tile.step <= dest_tile_step
+                if player.tile.step < tile.step <= dest_tile_step:
+                    journey_tiles.append(tile)
 
-            if valid_tile:
-                # Have we arrived at our destination?
-                if tile.step == dest_tile_step:
-                    player.handle_land_on_tile(tile)
-                else:
-                    # For each tile, handle what happens when you transit across it.
-                    player.handle_transit_tile(tile)
+        # We've now built up a list, `journey_tiles`, of Tiles which the player is going to navigate
+        # across. However, if the turn is circular (we're going around the board again), we need to
+        # ensure that pre-GO tiles are sorted before post-GO tiles. For example, if I'm at Super Tax
+        # (the penultimate tile), I need to navigate across Mayfair first (#40) before I start navigating
+        # across GO (#1), Old Kent Road (#2), etc. As we can't simply sort (we need highest step DESC, then
+        # highest step ASC), we'll:
+        # 1) Pluck out the pre_go_tiles (between player's next tile and the end of the board).
+        # 2) Establish what the difference is between the journey tiles and the pre_go_tiles (post_go_tiles).
+        # 3) Sort the post_go_tiles by step ASC.
+        # 4) Re-create the journey tiles, sticking the pre-GO tiles first.
+        if circular_roll:
+            pre_go_tiles = [t for t in journey_tiles if t.step > player.tile.step and t.step <= self.total_tile_count]
+            post_go_tiles = list(set(journey_tiles) - set(pre_go_tiles))
+            post_go_tiles.sort(key=lambda t: t.step)
+            journey_tiles = pre_go_tiles + post_go_tiles
+
+        # Iterate over each journey tile...
+        for tile in journey_tiles:
+            # Have we arrived at our destination?
+            if tile.step == dest_tile_step:
+                player.handle_land_on_tile(tile)
+            else:
+                # For each tile, handle what happens when you transit across it.
+                player.handle_transit_tile(tile)
 
         # Did the player roll double die?
         if dice_roll[0] == dice_roll[1]:

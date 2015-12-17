@@ -52,10 +52,39 @@ class BoardTestCase(TestCase):
         tile = board.get_tile_by_name('Buckingham Palace')
         self.assertIsNone(tile)
 
-    def test_board_handle_non_circular_turn(self):
+    def test_board_play_turn_non_circular(self):
+        # Test going passed GO.
         board = Board(num_players=1, locale='en-gb')
         board.setup()
         player = board.players[0]
+
+        # Sanity check our start position.
+        player.tile = board.get_tile_by_name('GO')
+        self.assertEqual(player.tile.step, 1)
+
+        # Move across GO.
+        board.handle_play_turn(player, (6, 5))
+
+        # Sanity check our end position.
+        self.assertEqual(player.tile.name, 'Pall Mall')
+        self.assertEqual(player.tile.step, 12)
+
+    def test_board_play_turn_circular(self):
+        # Test going passed GO.
+        board = Board(num_players=1, locale='en-gb')
+        board.setup()
+        player = board.players[0]
+
+        # Sanity check our start position.
+        player.tile = board.get_tile_by_name('Super Tax')
+        self.assertEqual(player.tile.step, board.total_tile_count - 1)
+
+        # Move across GO.
+        board.handle_play_turn(player, (5, 1))
+
+        # Sanity check our end position.
+        self.assertEqual(player.tile.name, 'Income Tax')
+        self.assertEqual(player.tile.step, 5)
 
     def test_board_handle_jail_turn_exit_pay(self):
         board = Board(num_players=1, locale='en-gb')
