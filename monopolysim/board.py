@@ -76,6 +76,7 @@ class Board(object):
 
         for tile_step, tile_template in enumerate(board_template):
             tile_type = tile_template['type']
+            tile_template['board'] = self
             tile_template['step'] = tile_step + 1
             tile = tile_map[tile_type](**tile_template)
             self.tiles.append(tile)
@@ -101,6 +102,15 @@ class Board(object):
         # TODO: implement this.
         pass
 
+    def get_tile_by_name(self, name):
+        """
+        Returns the `Tile` in `self.tiles` which has a name of `name`.
+        """
+        for tile in self.tiles:
+            if tile.name == name:
+                return tile
+        return None
+
     def handle_jail_turn(self, player):
         """
         A player can exit jail under four conditions:
@@ -119,14 +129,12 @@ class Board(object):
         """
         turn_decision = player.jail_exit_choice()
         if turn_decision == 'pay':
-            player.in_jail = False
-            player.jail_exit_rolls = 0
             player.wallet.withdraw(50)
+            player.handle_jail_exit()
         elif turn_decision == 'wait':
             if player.jail_exit_rolls == self.max_jail_exit_rolls:
-                player.in_jail = False
                 player.wallet.withdraw(50)
-                player.jail_exit_rolls = 0
+                player.handle_jail_exit()
                 logging.debug('%s has been in jail for three turns, they are now free.' % player.nickname)
                 return self.handle_play_turn(player)
 
@@ -137,8 +145,7 @@ class Board(object):
                     dice_roll[0],
                     dice_roll[1]
                 ))
-                player.in_jail = False
-                player.jail_exit_rolls = 0
+                player.handle_jail_exit()
                 return self.handle_play_turn(player, dice_roll)
 
             player.jail_exit_rolls += 1

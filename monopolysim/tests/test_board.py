@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from tiles import Tile
 from board import Board, LocaleDoesNotExist
 
 
@@ -38,6 +39,19 @@ class BoardTestCase(TestCase):
             self.assertEqual(player.cash, board.initial_player_deposit)
             self.assertEqual(player.tile.step, 1)
 
+    def test_board_get_real_tile_by_name(self):
+        board = Board(num_players=1, locale='en-gb')
+        board.setup()
+        tile = board.get_tile_by_name('Jail')
+        self.assertIsInstance(tile, Tile)
+        self.assertEqual(tile.name, 'Jail')
+
+    def test_board_get_fake_tile_by_name(self):
+        board = Board(num_players=1, locale='en-gb')
+        board.setup()
+        tile = board.get_tile_by_name('Buckingham Palace')
+        self.assertIsNone(tile)
+
     def test_board_handle_non_circular_turn(self):
         board = Board(num_players=1, locale='en-gb')
         board.setup()
@@ -48,7 +62,7 @@ class BoardTestCase(TestCase):
         board.setup()
 
         player = board.players[0]
-        player.in_jail = True
+        player.handle_jail_entry()
 
         def mock_jail_exit_choice():
             return 'pay'
@@ -65,7 +79,7 @@ class BoardTestCase(TestCase):
         board.setup()
 
         player = board.players[0]
-        player.in_jail = True
+        player.handle_jail_entry()
 
         def mock_jail_exit_choice():
             return 'wait'
@@ -96,7 +110,7 @@ class BoardTestCase(TestCase):
         board.setup()
 
         player = board.players[0]
-        player.in_jail = True
+        player.handle_jail_entry()
 
         def mock_jail_exit_choice():
             return 'wait'
