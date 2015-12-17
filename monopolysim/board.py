@@ -46,6 +46,9 @@ class Board(object):
         # How much money the players initially receive.
         self.initial_player_deposit = 2500
 
+        # How many jail roll turns does it take to exit?
+        self.max_jail_exit_rolls = 3
+
     def initialize_board(self):
         """
         Reads the board JSON template for the requested locale
@@ -73,6 +76,7 @@ class Board(object):
 
         for tile_step, tile_template in enumerate(board_template):
             tile_type = tile_template['type']
+            tile_template['board'] = self
             tile_template['step'] = tile_step + 1
             tile = tile_map[tile_type](**tile_template)
             self.tiles.append(tile)
@@ -91,14 +95,69 @@ class Board(object):
 
     def initialize_turns(self):
         """
-        For each player
-            Roll a die
-            If the die matches one in the set
-            Both players re-roll
+        Determines the order in which our players take turns. This is
+        decided by rolling a die. If players have the same die value,
+        they all re-roll until we have a valid sorting.
         """
+        # TODO: implement this.
         pass
 
-    def handle_turn(self, player):
+    def get_tile_by_name(self, name):
+        """
+        Returns the `Tile` in `self.tiles` which has a name of `name`.
+        """
+        for tile in self.tiles:
+            if tile.name == name:
+                return tile
+        return None
+
+    def handle_jail_turn(self, player):
+        """
+        A player can exit jail under four conditions:
+
+        1. Pay a fine of 50 and continue on their next turn
+        2. Purchase a "Get Out Of Jail Free" card from another player
+        3. Use a "Get Out Of Jail Free" card if they have one
+        4. Wait there for three turns, rolling the dice on each turn to try to roll a double.
+           If they roll a double on any turn, move out of Jail using this dice roll. After they
+           have waited three turns, they must move out of Jail and pay 50 before moving their
+           token according to their dice roll.
+
+        As we want to support multiple player decisions, we'll call the player's jail_exit_choice
+        method, which will return a decision based on the player (eventual) AI. This decision will
+        then make us pick one of the four conditions.
+        """
+        turn_decision = player.jail_exit_choice()
+        if turn_decision == 'pay':
+            player.wallet.withdraw(50)
+            player.handle_jail_exit()
+        elif turn_decision == 'wait':
+            if player.jail_exit_rolls == self.max_jail_exit_rolls:
+                player.wallet.withdraw(50)
+                player.handle_jail_exit()
+                logging.debug('%s has been in jail for three turns, they are now free.' % player.nickname)
+                return self.handle_play_turn(player)
+
+            dice_roll = player.roll_dice()
+            if dice_roll[0] == dice_roll[1]:
+                logging.debug('%s rolled a %d and %d, they exit jail.' % (
+                    player.nickname,
+                    dice_roll[0],
+                    dice_roll[1]
+                ))
+                player.handle_jail_exit()
+                return self.handle_play_turn(player, dice_roll)
+
+            player.jail_exit_rolls += 1
+            logging.debug('%s rolled a %d and %d. They remain in jail (roll %d of %d).' % (
+                player.nickname,
+                dice_roll[0],
+                dice_roll[1],
+                player.jail_exit_rolls,
+                self.max_jail_exit_rolls
+            ))
+
+    def handle_play_turn(self, player, dice_roll=None):
         """
         Responsible for handling a player's current turn.
 
@@ -107,7 +166,8 @@ class Board(object):
         3. For each tile on the way there, they trigger on_transit.
         4. At the destination tile, player triggers on_visit.
         """
-        dice_roll = player.roll_dice()
+        if not dice_roll:
+            dice_roll = player.roll_dice()
         tile_moves = sum(dice_roll)
         logging.debug('%s rolled a %d and %d.' % (player.nickname, dice_roll[0], dice_roll[1]))
 
@@ -140,7 +200,7 @@ class Board(object):
         # Did the player roll double die?
         if dice_roll[0] == dice_roll[1]:
             logging.debug('%s rolled a double, they get to roll again.' % player.nickname)
-            self.handle_turn(player)
+            self.handle_play_turn(player)
 
     def setup(self):
         self.initialize_board()
@@ -155,7 +215,10 @@ class Board(object):
         try:
             while game_running:
                 for player in self.players:
-                    self.handle_turn(player)
+                    if player.in_jail:
+                        self.handle_jail_turn(player)
+                    else:
+                        self.handle_play_turn(player)
                     sleep(2)
         except KeyboardInterrupt:
             print 'Game has been suspended.'
