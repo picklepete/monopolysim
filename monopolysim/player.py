@@ -40,6 +40,14 @@ class Player(object):
         self.in_jail = False
         self.jail_exit_rolls = 0
 
+    def construct_houses(self):
+        """
+        On any given non-jail turn, a player can decide if they wish to
+        purchase houses or hotels for their properties.
+        TODO: implement this.
+        """
+        pass
+
     def jail_exit_choice(self):
         """
         Based on this player's AI, returns their preferred method of
