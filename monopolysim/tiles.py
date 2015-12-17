@@ -81,7 +81,7 @@ class GoToJailTile(Tile):
     The corner "Go To Jail" tile.
     """
     def on_land(self, player):
-        player.in_jail = True
+        player.handle_jail_entry()
         logging.debug('%s has arrived at Go To Jail, they are now in jail.' % player.nickname)
 
 
