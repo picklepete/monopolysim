@@ -5,7 +5,8 @@ from time import sleep
 from random import randint
 
 from player import Player
-from conf import MAX_JAIL_FAILED_ROLLS, DEFAULT_PLAYER_NAMES
+from conf import MAX_JAIL_FAILED_ROLLS, PLAYER_JAIL_PAY, \
+    PLAYER_JAIL_WAIT, DEFAULT_PLAYER_NAMES
 from tiles import Tile, TaxableTile, ChanceTile, PropertyTile, \
     CommunityChestTile, JailTile, GoToJailTile, FreeParkingTile, GoTile
 
@@ -143,10 +144,10 @@ class Board(object):
         then make us pick one of the four conditions.
         """
         turn_decision = player.jail_exit_choice()
-        if turn_decision == 'pay':
+        if turn_decision == PLAYER_JAIL_PAY:
             player.wallet.withdraw(50)
             player.handle_jail_exit()
-        elif turn_decision == 'wait':
+        elif turn_decision == PLAYER_JAIL_WAIT:
             if player.jail_exit_rolls == MAX_JAIL_FAILED_ROLLS:
                 player.wallet.withdraw(50)
                 player.handle_jail_exit()
