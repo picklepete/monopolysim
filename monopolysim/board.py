@@ -2,8 +2,10 @@ import sys
 import json
 import logging
 from time import sleep
+from random import randint
 
 from player import Player
+from conf import MAX_JAIL_FAILED_ROLLS, DEFAULT_PLAYER_NAMES
 from tiles import Tile, TaxableTile, ChanceTile, PropertyTile, \
     CommunityChestTile, JailTile, GoToJailTile, FreeParkingTile, GoTile
 
@@ -45,18 +47,6 @@ class Board(object):
 
         # The total number of tiles on the board.
         self.total_tile_count = 0
-
-        # How much money the players initially receive.
-        self.initial_player_deposit = 2500
-
-        # How many jail roll turns does it take to exit?
-        self.max_jail_exit_rolls = 3
-
-        # The total number of hotels which can exist on the board.
-        self.max_hotels = 12
-
-        # The total number of houses which can exist on the board.
-        self.max_houses = 32
 
     def initialize_board(self):
         """
@@ -102,7 +92,6 @@ class Board(object):
         logging.debug('Initializing %d players.' % self.num_players)
         for pid in xrange(0, self.num_players):
             player = Player(nickname='Player%d' % pid, tile=self.tiles[0])
-            player.wallet.deposit(self.initial_player_deposit)
             self.players.append(player)
 
     def initialize_turns(self):
@@ -144,10 +133,11 @@ class Board(object):
             player.wallet.withdraw(50)
             player.handle_jail_exit()
         elif turn_decision == 'wait':
-            if player.jail_exit_rolls == self.max_jail_exit_rolls:
+            if player.jail_exit_rolls == MAX_JAIL_FAILED_ROLLS:
                 player.wallet.withdraw(50)
                 player.handle_jail_exit()
-                logging.debug('%s has been in jail for three turns, they are now free.' % player.nickname)
+                logging.debug('%s has been in jail for %s turns, they '
+                              'are now free.' % (player.nickname, MAX_JAIL_FAILED_ROLLS))
                 return self.handle_play_turn(player)
 
             dice_roll = player.roll_dice()
@@ -166,7 +156,7 @@ class Board(object):
                 dice_roll[0],
                 dice_roll[1],
                 player.jail_exit_rolls,
-                self.max_jail_exit_rolls
+                MAX_JAIL_FAILED_ROLLS
             ))
 
     def handle_play_turn(self, player, dice_roll=None):

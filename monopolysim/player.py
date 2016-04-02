@@ -2,6 +2,7 @@ from uuid import uuid4
 from random import randint
 
 from tiles import PropertyTile
+from conf import INITIAL_PLAYER_CASH
 
 
 class Player(object):
@@ -20,7 +21,7 @@ class Player(object):
         self.id = uuid4().hex
         self.tile = kwargs.get('tile', None)
         self.board = getattr(self.tile, 'board', None)
-        self.cash = kwargs.get('cash', 0)
+        self.cash = kwargs.get('cash', INITIAL_PLAYER_CASH)
         self.token = kwargs.get('token', None)
         self.in_jail = kwargs.get('in_jail', False)
         self.jail_exit_rolls = kwargs.get('jail_exit_rolls', 0)

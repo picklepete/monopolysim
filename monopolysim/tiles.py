@@ -1,5 +1,7 @@
 import logging
 
+from conf import GO_TRANSIT_PAYMENT
+
 
 class Tile(object):
     """
@@ -58,8 +60,8 @@ class GoTile(Tile):
     The corner "GO" tile.
     """
     def on_transit(self, player):
-        player.wallet.deposit(200)
-        logging.debug('%s has passed GO and collected 200.' % player.nickname)
+        player.wallet.deposit(GO_TRANSIT_PAYMENT)
+        logging.debug('%s has passed GO and collected %d.' % (player.nickname, GO_TRANSIT_PAYMENT))
 
 
 class FreeParkingTile(NoopTile):
