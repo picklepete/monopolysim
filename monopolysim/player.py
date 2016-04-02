@@ -2,7 +2,8 @@ from uuid import uuid4
 from random import randint
 
 from tiles import PropertyTile
-from conf import INITIAL_PLAYER_CASH
+from conf import INITIAL_PLAYER_CASH, PLAYER_JAIL_WAIT, \
+    PLAYER_PURCHASE_PROPERTY, PLAYER_BUILD_PROPERTY
 
 
 class Player(object):
@@ -63,7 +64,17 @@ class Player(object):
         Until the AI system has been implemented, this method will pick "wait".
         """
         # TODO: implement using the "Get Out Of Jail Free" card when the Cards system has been built.
-        return 'wait'
+        return PLAYER_JAIL_WAIT
+
+    def property_purchase_choice(self):
+        """
+        """
+        return PLAYER_PURCHASE_PROPERTY
+
+    def property_build_choice(self):
+        """
+        """
+        return PLAYER_BUILD_PROPERTY
 
     def handle_land_on_tile(self, tile):
         """
@@ -76,9 +87,30 @@ class Player(object):
         # Does the tile do anything when you visit it?
         tile.on_land(self)
 
-        if isinstance(tile, PropertyTile):
-            # TODO: implement purchasing tiles.
-            pass
+        # If this tile is a property, does the player have
+        # rent to pay if it's owned? If it's not owned, does
+        # the player want to buy it?
+        if tile.type == 'property':
+            """
+            Owned, and it's not theirs: get the rent cost from the tile. If the player can
+                                        afford it, pay it. If they can't afford it, we need
+                                        to start mortgaging their assets.
+            Owned, and it's theirs: call property_build_choice.
+            Not owned: get the ownership cost, if the player can afford it, call property_purchase_choice.
+            """
+            if not tile.is_owned:
+                decision = self.property_purchase_choice()
+                if decision == PLAYER_PURCHASE_PROPERTY:
+                    # Purchase the property if the player can afford it.
+                    pass
+            elif tile.owner.id == self.id:
+                # This property belongs to this player.
+                decision = self.property_build_choice()
+                if decision == PLAYER_BUILD_PROPERTY:
+                    pass
+            else:
+                # This property belongs to someone else.
+                pass
 
     def handle_transit_tile(self, tile):
         """
