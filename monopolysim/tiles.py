@@ -97,4 +97,11 @@ class TaxableTile(Tile):
 
 
 class PropertyTile(Tile):
-    pass
+    """
+    All purchasable tiles are of this tile type.
+    """
+    def __init__(self, *args, **kwargs):
+        super(PropertyTile, self).__init__(*args, **kwargs)
+        self.owner = None
+        self.is_owned = self.owner is not None
+
