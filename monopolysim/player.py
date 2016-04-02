@@ -1,9 +1,9 @@
+import logging
 from uuid import uuid4
 from random import randint
+from collections import defaultdict
 
-from tiles import PropertyTile
-from conf import INITIAL_PLAYER_CASH, PLAYER_JAIL_WAIT, \
-    PLAYER_PURCHASE_PROPERTY, PLAYER_BUILD_PROPERTY
+import conf
 
 
 class Player(object):
@@ -16,19 +16,17 @@ class Player(object):
     - `in_jail` represents whether or not this player is in jail.
     - `bankrupt` represents this player is bankrupt and out of the game.
     - `nickname` represents this player's name.
-    - `portfolio` represents this player's `PropertyTile` portfolio.
     """
     def __init__(self, *args, **kwargs):
         self.id = uuid4().hex
         self.tile = kwargs.get('tile', None)
         self.board = getattr(self.tile, 'board', None)
-        self.cash = kwargs.get('cash', INITIAL_PLAYER_CASH)
+        self.cash = kwargs.get('cash', conf.INITIAL_PLAYER_CASH)
         self.token = kwargs.get('token', None)
         self.in_jail = kwargs.get('in_jail', False)
         self.jail_exit_rolls = kwargs.get('jail_exit_rolls', 0)
         self.bankrupt = kwargs.get('bankrupt', False)
         self.nickname = kwargs.get('nickname', 'Anonymous')
-        self.portfolio = kwargs.get('portfolio', [])
         self.dice_roll_history = []
 
     def __repr__(self):
@@ -42,6 +40,20 @@ class Player(object):
         self.in_jail = False
         self.jail_exit_rolls = 0
 
+    def get_portfolio(self):
+        """
+        Returns the player's property portfolio, grouped by `type`.
+        """
+        portfolio = defaultdict(list)
+        tiles = filter(lambda t: t.type in ['property', 'station'], self.board.tiles)
+        for tile in tiles:
+            if tile.owner == self:
+                group_by = 'group'
+                if tile.type == 'station':
+                    group_by = 'type'
+                portfolio[getattr(tile, group_by)].append(tile)
+        return portfolio
+
     def construct_houses(self):
         """
         On any given non-jail turn, a player can decide if they wish to
@@ -49,6 +61,16 @@ class Player(object):
         TODO: implement this.
         """
         pass
+
+    def property_purchase_choice(self, purchase_price):
+        """
+        """
+        return conf.PLAYER_PURCHASE_PROPERTY
+
+    def property_build_choice(self, upgrade_price):
+        """
+        """
+        return conf.PLAYER_BUILD_PROPERTY
 
     def jail_exit_choice(self):
         """
@@ -64,17 +86,41 @@ class Player(object):
         Until the AI system has been implemented, this method will pick "wait".
         """
         # TODO: implement using the "Get Out Of Jail Free" card when the Cards system has been built.
-        return PLAYER_JAIL_WAIT
+        return conf.PLAYER_JAIL_WAIT
 
-    def property_purchase_choice(self):
+    def pay_rent(self, tile, price):
         """
+        Handles rent payment between the property owner and this player.
         """
-        return PLAYER_PURCHASE_PROPERTY
+        self.wallet.withdraw(price)
+        tile.owner.wallet.deposit(price)
+        logging.debug('%s paid %s %d in rent.' % (self.nickname, tile.owner.nickname, price))
 
-    def property_build_choice(self):
+    def purchase_property(self, tile):
         """
+        Handles purchasing a new property.
         """
-        return PLAYER_BUILD_PROPERTY
+        tile.owner = self
+        price = tile.prices['purchase']
+        self.wallet.withdraw(price)
+        logging.debug('%s has purchased "%s".' % (self.nickname, tile.name))
+
+    def upgrade_property(self, tile):
+        """
+        Handles upgrading an existing property.
+        """
+        upgrade_type, upgrade_price = tile.get_upgrade_price()
+        if upgrade_type == 'hotel':
+            tile.hotel = True
+            logging.debug('%s upgraded "%s" to a hotel.' % (self.nickname, tile.name))
+        else:
+            tile.houses += 1
+            logging.debug('%s has added a house to "%s", the total is now %d.' % (
+                self.nickname,
+                tile.name,
+                tile.houses
+            ))
+        self.wallet.withdraw(upgrade_price)
 
     def handle_land_on_tile(self, tile):
         """
@@ -91,26 +137,48 @@ class Player(object):
         # rent to pay if it's owned? If it's not owned, does
         # the player want to buy it?
         if tile.type == 'property':
-            """
-            Owned, and it's not theirs: get the rent cost from the tile. If the player can
-                                        afford it, pay it. If they can't afford it, we need
-                                        to start mortgaging their assets.
-            Owned, and it's theirs: call property_build_choice.
-            Not owned: get the ownership cost, if the player can afford it, call property_purchase_choice.
-            """
             if not tile.is_owned:
-                decision = self.property_purchase_choice()
-                if decision == PLAYER_PURCHASE_PROPERTY:
-                    # Purchase the property if the player can afford it.
-                    pass
+                price = tile.prices['purchase']
+                if self.cash >= price:
+                    decision = self.property_purchase_choice(price)
+                    if decision == conf.PLAYER_PURCHASE_PROPERTY:
+                        # Purchase the property.
+                        self.purchase_property(tile)
+                    else:
+                        # Player can afford it, but chose not to.
+                        logging.debug('%s chose not to buy "%s".' % (self.nickname, tile.name))
+                else:
+                    # Player can't afford it.
+                    logging.debug('%s cannot afford to buy "%s".' % (self.nickname, tile.name))
             elif tile.owner.id == self.id:
                 # This property belongs to this player.
-                decision = self.property_build_choice()
-                if decision == PLAYER_BUILD_PROPERTY:
-                    pass
+                # Work out what the upgrade type and cost is.
+                upgrade_type, upgrade_price = tile.get_upgrade_price()
+
+                # If the player has enough cash...
+                if self.cash >= upgrade_price:
+                    # Let the player decide if they want to upgrade.
+                    decision = self.property_build_choice(upgrade_price)
+                    if decision == conf.PLAYER_BUILD_PROPERTY:
+                        # We've chosen to upgrade.
+                        self.upgrade_property(tile)
+                    else:
+                        # Player can afford the upgrade, but chose not to.
+                        logging.debug('%s chose not to upgrade "%s".' % (self.nickname, tile.name))
+                else:
+                    # Player can't afford the upgrade.
+                    logging.debug('%s cannot afford to upgrade "%s".' % (self.nickname, tile.name))
             else:
                 # This property belongs to someone else.
-                pass
+                rent_price = tile.get_rent_cost()
+                # If the player has enough cash...
+                if self.cash >= rent_price:
+                    # Exchange the rent price.
+                    self.pay_rent(tile, rent_price)
+                else:
+                    # TODO: the player can't afford to pay rent.
+                    # Once mortgaging has been built, call it here.
+                    logging.debug('%s cannot afford to pay %s rent.' % (self.nickname, tile.owner.nickname))
 
     def handle_transit_tile(self, tile):
         """

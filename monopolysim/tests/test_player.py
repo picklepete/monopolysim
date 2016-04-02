@@ -63,3 +63,39 @@ class PlayerTestCase(TestCase):
         self.assertTrue(player.in_jail)
         self.assertEqual(player.tile.name, 'Jail')
         self.assertEqual(len(player.dice_roll_history), 0)
+
+    def test_get_portfolio(self):
+        board = Board(num_players=1, locale='en-gb')
+        board.setup()
+
+        player = board.players[0]
+        player.wallet.deposit(5000)
+
+        for name in ['Old Kent Road', 'Whitechapel Road', 'Liverpool Street Station']:
+            tile = board.get_tile_by_name(name)
+            player.purchase_property(tile)
+
+        portfolio = player.get_portfolio()
+
+        self.assertIn('station', portfolio)
+        self.assertEqual(len(portfolio['station']), 1)
+        self.assertIn('brown', portfolio)
+        self.assertEqual(len(portfolio['brown']), 2)
+
+    def test_pay_rent(self):
+        board = Board(num_players=2, locale='en-gb')
+        board.setup()
+
+        p1 = board.players[0]
+        p1_cash = p1.cash
+        p2 = board.players[1]
+        p2_cash = p2.cash
+
+        owned_tile = board.get_tile_by_name('Mayfair')
+        owned_tile.owner = p1
+        rent = owned_tile.get_rent_cost()
+
+        p2.pay_rent(owned_tile, rent)
+
+        self.assertEqual(p1.cash, p1_cash + rent)
+        self.assertEqual(p2.cash, p2_cash - rent)
