@@ -38,3 +38,10 @@ DEFAULT_PLAYER_NAMES = [
     'William',
     'Sophie'
 ]
+
+# The actions that are available to players.
+PLAYER_JAIL_PAY = 'pay'
+PLAYER_JAIL_WAIT = 'wait'
+PLAYER_BUILD_PROPERTY = 'build'
+PLAYER_PURCHASE_PROPERTY = 'purchase'
+
