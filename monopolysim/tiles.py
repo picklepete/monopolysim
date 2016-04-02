@@ -103,5 +103,32 @@ class PropertyTile(Tile):
     def __init__(self, *args, **kwargs):
         super(PropertyTile, self).__init__(*args, **kwargs)
         self.owner = None
-        self.is_owned = self.owner is not None
+        self.houses = 0
+        self.hotel = False
 
+    @property
+    def is_owned(self):
+        return self.owner is not None
+
+    def get_upgrade_price(self):
+        """
+        """
+        if not self.hotel and self.houses == 4:
+            return 'hotel', self.prices['hotel']
+        return 'house', self.prices['house']
+
+    def get_rent_cost(self):
+        """
+        When you land on a property, the number of houses decides
+        how much the rent is. When you load on a station, the number
+        of stations owned by the same player decides the price.
+        """
+        if self.type == 'property':
+            houses = str(self.houses)
+            if self.hotel:
+                houses = 5
+            return self.prices['rent'][houses]
+        elif self.type == 'station':
+            owner_portfolio = self.owner.get_portfolio()
+            owner_total_stations = len(owner_portfolio['stations'])
+            return self.prices['rent'][str(owner_total_stations)]
