@@ -1,7 +1,9 @@
 from unittest import TestCase
 
 from tiles import Tile
+from player import Player
 from board import Board, LocaleDoesNotExist
+from conf import INITIAL_PLAYER_CASH
 
 
 class BoardTestCase(TestCase):
@@ -36,7 +38,7 @@ class BoardTestCase(TestCase):
         board.initialize_players()
         self.assertEqual(len(board.players), 2)
         for player in board.players:
-            self.assertEqual(player.cash, board.initial_player_deposit)
+            self.assertEqual(player.cash, INITIAL_PLAYER_CASH)
             self.assertEqual(player.tile.step, 1)
 
     def test_board_get_real_tile_by_name(self):
@@ -162,3 +164,31 @@ class BoardTestCase(TestCase):
         board.handle_jail_turn(player)
         self.assertFalse(player.in_jail)
         self.assertEqual(player.jail_exit_rolls, 0)
+
+    def test_get_random_player_name(self):
+        board = Board(num_players=3, locale='en-gb')
+
+        used_names = []
+        database = ['Steve', 'Barry']
+
+        # First player gets a name.
+        nickname = board.get_random_player_name(1, database)
+        self.assertNotIn(nickname, used_names)
+        used_names.append(nickname)
+        self.assertIn(nickname, database)
+        player = Player(nickname=nickname)
+        board.players.append(player)
+
+        # Second player gets a name.
+        nickname = board.get_random_player_name(2, database)
+        self.assertNotIn(nickname, used_names)
+        used_names.append(nickname)
+        self.assertIn(nickname, database)
+        player = Player(nickname=nickname)
+        board.players.append(player)
+
+        # For the third player we've exhausted the pool.
+        nickname = board.get_random_player_name(3, database)
+        self.assertEqual(nickname, 'Player3')
+        player = Player(nickname=nickname)
+        board.players.append(player)

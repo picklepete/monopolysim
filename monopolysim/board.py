@@ -91,7 +91,8 @@ class Board(object):
 
         logging.debug('Initializing %d players.' % self.num_players)
         for pid in xrange(0, self.num_players):
-            player = Player(nickname='Player%d' % pid, tile=self.tiles[0])
+            nickname = self.get_random_player_name(pid)
+            player = Player(nickname=nickname, tile=self.tiles[0])
             self.players.append(player)
 
     def initialize_turns(self):
@@ -111,6 +112,19 @@ class Board(object):
             if tile.name == name:
                 return tile
         return None
+
+    def get_random_player_name(self, pid, database=None):
+        """
+        Picks a random name from the `database` list, and
+        if it's not set, defaults to DEFAULT_PLAYER_NAMES.
+        """
+        if database is None:
+            database = DEFAULT_PLAYER_NAMES
+        used_player_names = map(lambda player: player.nickname, self.players)
+        available_names = list(set(database) - set(used_player_names))
+        if available_names:
+            return available_names[randint(0, len(available_names) - 1)]
+        return 'Player%d' % pid
 
     def handle_jail_turn(self, player):
         """
