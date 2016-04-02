@@ -4,13 +4,10 @@ import logging
 from time import sleep
 from random import randint
 
+import conf
 from player import Player
-from conf import MAX_JAIL_FAILED_ROLLS, PLAYER_JAIL_PAY, \
-    PLAYER_JAIL_WAIT, DEFAULT_PLAYER_NAMES
 from tiles import Tile, TaxableTile, ChanceTile, PropertyTile, \
     CommunityChestTile, JailTile, GoToJailTile, FreeParkingTile, GoTile
-
-logging.basicConfig(format='%(levelname)s: %(message)s', filename='sim.log', level=logging.DEBUG)
 
 
 class Board(object):
@@ -63,7 +60,7 @@ class Board(object):
 
         tile_map = {
             'go': GoTile,
-            'station': Tile,
+            'station': PropertyTile,
             'utilities': Tile,
             'tax': TaxableTile,
             'jail': JailTile,
@@ -120,7 +117,7 @@ class Board(object):
         if it's not set, defaults to DEFAULT_PLAYER_NAMES.
         """
         if database is None:
-            database = DEFAULT_PLAYER_NAMES
+            database = conf.DEFAULT_PLAYER_NAMES
         used_player_names = map(lambda player: player.nickname, self.players)
         available_names = list(set(database) - set(used_player_names))
         if available_names:
@@ -144,15 +141,15 @@ class Board(object):
         then make us pick one of the four conditions.
         """
         turn_decision = player.jail_exit_choice()
-        if turn_decision == PLAYER_JAIL_PAY:
+        if turn_decision == conf.PLAYER_JAIL_PAY:
             player.wallet.withdraw(50)
             player.handle_jail_exit()
-        elif turn_decision == PLAYER_JAIL_WAIT:
-            if player.jail_exit_rolls == MAX_JAIL_FAILED_ROLLS:
+        elif turn_decision == conf.PLAYER_JAIL_WAIT:
+            if player.jail_exit_rolls == conf.MAX_JAIL_FAILED_ROLLS:
                 player.wallet.withdraw(50)
                 player.handle_jail_exit()
                 logging.debug('%s has been in jail for %s turns, they '
-                              'are now free.' % (player.nickname, MAX_JAIL_FAILED_ROLLS))
+                              'are now free.' % (player.nickname, conf.MAX_JAIL_FAILED_ROLLS))
                 return self.handle_play_turn(player)
 
             dice_roll = player.roll_dice()
@@ -171,7 +168,7 @@ class Board(object):
                 dice_roll[0],
                 dice_roll[1],
                 player.jail_exit_rolls,
-                MAX_JAIL_FAILED_ROLLS
+                conf.MAX_JAIL_FAILED_ROLLS
             ))
 
     def handle_play_turn(self, player, dice_roll=None):
@@ -275,6 +272,7 @@ class Board(object):
                     else:
                         self.handle_play_turn(player)
                     sleep(2)
+                    logging.debug('-' * 70)
         except KeyboardInterrupt:
             print 'Game has been suspended.'
             sys.exit(0)
