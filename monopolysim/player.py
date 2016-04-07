@@ -4,6 +4,7 @@ from random import randint
 from collections import defaultdict
 
 import conf
+from tiles import PropertyTile
 
 
 class Player(object):
@@ -136,7 +137,7 @@ class Player(object):
         # If this tile is a property, does the player have
         # rent to pay if it's owned? If it's not owned, does
         # the player want to buy it?
-        if tile.type == 'property':
+        if isinstance(tile, PropertyTile):
             if not tile.is_owned:
                 price = tile.prices['purchase']
                 if self.cash >= price:
@@ -150,7 +151,8 @@ class Player(object):
                 else:
                     # Player can't afford it.
                     logging.debug('%s cannot afford to buy "%s".' % (self.nickname, tile.name))
-            elif tile.owner.id == self.id:
+            elif tile.owner.id == self.id and tile.type == 'property':
+                # Only properties, not stations or utilities, can be upgraded.
                 # This property belongs to this player.
                 # Work out what the upgrade type and cost is.
                 upgrade_type, upgrade_price = tile.get_upgrade_price()
@@ -178,7 +180,9 @@ class Player(object):
                 else:
                     # TODO: the player can't afford to pay rent.
                     # Once mortgaging has been built, call it here.
-                    logging.debug('%s cannot afford to pay %s rent.' % (self.nickname, tile.owner.nickname))
+                    self.bankrupt = True
+                    logging.debug('%s cannot afford to pay %s rent, they '
+                                  'are bankrupt.' % (self.nickname, tile.owner.nickname))
 
     def handle_transit_tile(self, tile):
         """
@@ -220,7 +224,11 @@ class PlayerWallet(object):
         self.player = player
 
     def withdraw(self, amount):
-        self.player.cash -= amount
+        if (self.player.cash - amount) <= 0:
+            self.player.bankrupt = True
+            logging.debug('%s is bankrupt.' % self.player.nickname)
+        else:
+            self.player.cash -= amount
 
     def deposit(self, amount):
         self.player.cash += amount
