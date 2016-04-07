@@ -126,9 +126,9 @@ class PropertyTile(Tile):
         if self.type == 'property':
             houses = str(self.houses)
             if self.hotel:
-                houses = 5
+                houses = '5'
             return self.prices['rent'][houses]
         elif self.type == 'station':
             owner_portfolio = self.owner.get_portfolio()
-            owner_total_stations = len(owner_portfolio['stations'])
+            owner_total_stations = len(owner_portfolio['station'])
             return self.prices['rent'][str(owner_total_stations)]
