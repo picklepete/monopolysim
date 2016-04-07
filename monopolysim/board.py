@@ -250,9 +250,19 @@ class Board(object):
                 player.handle_transit_tile(tile)
 
         # Did the player roll double die?
-        if dice_roll[0] == dice_roll[1]:
+        if not player.bankrupt and dice_roll[0] == dice_roll[1]:
             logging.debug('%s rolled a double, they get to roll again.' % player.nickname)
             self.handle_play_turn(player)
+
+    def handle_game_end(self, players):
+        """
+        """
+        if not players:
+            logging.debug('There are no active players! Nobody won.')
+        if len(players) == 1:
+            player = players[0]
+            logging.debug('Hurray, %s won the game!' % player.nickname)
+        sys.exit(0)
 
     def setup(self):
         self.initialize_board()
@@ -266,13 +276,17 @@ class Board(object):
         game_running = True
         try:
             while game_running:
-                for player in self.players:
-                    if player.in_jail:
-                        self.handle_jail_turn(player)
-                    else:
-                        self.handle_play_turn(player)
-                    sleep(2)
-                    logging.debug('-' * 70)
+                active_players = filter(lambda p: not p.bankrupt, self.players)
+                if len(active_players) > 1:
+                    for player in active_players:
+                        if player.in_jail:
+                            self.handle_jail_turn(player)
+                        else:
+                            self.handle_play_turn(player)
+                        # sleep(0.25)
+                        logging.debug('-' * 70)
+                else:
+                    self.handle_game_end(active_players)
         except KeyboardInterrupt:
             print 'Game has been suspended.'
             sys.exit(0)
