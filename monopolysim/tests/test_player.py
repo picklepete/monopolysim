@@ -93,7 +93,7 @@ class PlayerTestCase(TestCase):
 
         owned_tile = board.get_tile_by_name('Mayfair')
         owned_tile.owner = p1
-        rent = owned_tile.get_rent_cost()
+        rent = owned_tile.get_rent_cost((5, 5))
 
         p2.pay_rent(owned_tile, rent)
 
