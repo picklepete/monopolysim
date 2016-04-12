@@ -123,7 +123,7 @@ class Player(object):
             ))
         self.wallet.withdraw(upgrade_price)
 
-    def handle_land_on_tile(self, tile):
+    def handle_land_on_tile(self, tile, dice_roll):
         """
         What happens when our Player
         navigates to and stops on this tile?
@@ -172,7 +172,7 @@ class Player(object):
                     logging.debug('%s cannot afford to upgrade "%s".' % (self.nickname, tile.name))
             else:
                 # This property belongs to someone else.
-                rent_price = tile.get_rent_cost()
+                rent_price = tile.get_rent_cost(dice_roll)
                 # If the player has enough cash...
                 if self.cash >= rent_price:
                     # Exchange the rent price.

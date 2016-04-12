@@ -150,7 +150,7 @@
 	},
 	{
 		"name": "Electric Company",
-		"type": "utilities",
+		"type": "utility",
 		"prices": {
 			"purchase": 150
 		}
@@ -391,7 +391,7 @@
 			"purchase": 150,
 			"mortgage": 75
 		},
-		"type": "utilities"
+		"type": "utility"
 	},
 	{
 		"name": "Picadilly",

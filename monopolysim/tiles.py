@@ -117,11 +117,14 @@ class PropertyTile(Tile):
             return 'hotel', self.prices['hotel']
         return 'house', self.prices['house']
 
-    def get_rent_cost(self):
+    def get_rent_cost(self, dice_roll):
         """
         When you land on a property, the number of houses decides
         how much the rent is. When you load on a station, the number
-        of stations owned by the same player decides the price.
+        of stations owned by the same player decides the price. When
+        you land on a utility, if one is owned, the rent is four times
+        the dice roll. If both utilities are owned, rent is ten times
+        the dice roll.
         """
         if self.type == 'property':
             houses = str(self.houses)
@@ -132,3 +135,11 @@ class PropertyTile(Tile):
             owner_portfolio = self.owner.get_portfolio()
             owner_total_stations = len(owner_portfolio['station'])
             return self.prices['rent'][str(owner_total_stations)]
+        elif self.type == 'utility':
+            owner_portfolio = self.owner.get_portfolio()
+            owner_total_utilities = len(owner_portfolio['utility'])
+            if owner_total_utilities == 1:
+                return dice_roll * 4
+            elif owner_total_utilities == 2:
+                return dice_roll * 10
+            raise ValueError('Unexpectedly found %d utility tiles, expected one or two.' % owner_total_utilities)

@@ -61,7 +61,7 @@ class Board(object):
         tile_map = {
             'go': GoTile,
             'station': PropertyTile,
-            'utilities': Tile,
+            'utility': PropertyTile,
             'tax': TaxableTile,
             'jail': JailTile,
             'chance': ChanceTile,
@@ -244,7 +244,7 @@ class Board(object):
         for tile in journey_tiles:
             # Have we arrived at our destination?
             if tile.step == dest_tile_step:
-                player.handle_land_on_tile(tile)
+                player.handle_land_on_tile(tile, dice_roll)
             else:
                 # For each tile, handle what happens when you transit across it.
                 player.handle_transit_tile(tile)
@@ -283,7 +283,7 @@ class Board(object):
                             self.handle_jail_turn(player)
                         else:
                             self.handle_play_turn(player)
-                        # sleep(0.25)
+                        sleep(0.25)
                         logging.debug('-' * 70)
                 else:
                     self.handle_game_end(active_players)
