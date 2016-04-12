@@ -225,6 +225,7 @@ class PlayerWallet(object):
 
     def withdraw(self, amount):
         if (self.player.cash - amount) <= 0:
+            self.player.cash = 0
             self.player.bankrupt = True
             logging.debug('%s is bankrupt.' % self.player.nickname)
         else:
