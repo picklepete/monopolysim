@@ -46,11 +46,11 @@ class Player(object):
         Returns the player's property portfolio, grouped by `type`.
         """
         portfolio = defaultdict(list)
-        tiles = filter(lambda t: t.type in ['property', 'station'], self.board.tiles)
+        tiles = filter(lambda t: t.type in ['property', 'station', 'utility'], self.board.tiles)
         for tile in tiles:
             if tile.owner == self:
                 group_by = 'group'
-                if tile.type == 'station':
+                if tile.type in ['station', 'utility']:
                     group_by = 'type'
                 portfolio[getattr(tile, group_by)].append(tile)
         return portfolio
