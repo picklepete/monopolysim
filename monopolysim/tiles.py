@@ -139,7 +139,7 @@ class PropertyTile(Tile):
             owner_portfolio = self.owner.get_portfolio()
             owner_total_utilities = len(owner_portfolio['utility'])
             if owner_total_utilities == 1:
-                return dice_roll * 4
+                return sum(dice_roll) * 4
             elif owner_total_utilities == 2:
-                return dice_roll * 10
+                return sum(dice_roll) * 10
             raise ValueError('Unexpectedly found %d utility tiles, expected one or two.' % owner_total_utilities)
