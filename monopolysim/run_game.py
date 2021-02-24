@@ -5,7 +5,7 @@ from board import Board
 
 parser = OptionParser()
 parser.add_option('-p', '--players', action='store', type='int',
-                  default=0, help='The total number of players.', dest='players')
+                  default=2, help='The total number of players.', dest='players')
 parser.add_option('-l', '--locale', action='store', type='string',
                   default='en-gb', help='The Monopoly board game locale.', dest='locale')
 parser.add_option('-f', '--fast', action='store_true', default=False, help='Play the game in fast mode.', dest='fast')
