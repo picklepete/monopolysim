@@ -1,5 +1,7 @@
 import logging
 
+from conf import GO_TRANSIT_PAYMENT
+
 
 class Tile(object):
     """
@@ -24,7 +26,7 @@ class Tile(object):
         What happens when our Player
         navigates past this tile?
         """
-        logging.debug('%s has visited "%s".' % (player.nickname, self.name))
+        logging.debug('\t%s has visited "%s".' % (player.nickname, self.name))
 
 
 class NoopTile(Tile):
@@ -58,8 +60,8 @@ class GoTile(Tile):
     The corner "GO" tile.
     """
     def on_transit(self, player):
-        player.wallet.deposit(200)
-        logging.debug('%s has passed GO and collected 200.' % player.nickname)
+        player.wallet.deposit(GO_TRANSIT_PAYMENT)
+        logging.debug('%s has passed GO and collected %d.' % (player.nickname, GO_TRANSIT_PAYMENT))
 
 
 class FreeParkingTile(NoopTile):
@@ -95,4 +97,49 @@ class TaxableTile(Tile):
 
 
 class PropertyTile(Tile):
-    pass
+    """
+    All purchasable tiles are of this tile type.
+    """
+    def __init__(self, *args, **kwargs):
+        super(PropertyTile, self).__init__(*args, **kwargs)
+        self.owner = None
+        self.houses = 0
+        self.hotel = False
+
+    @property
+    def is_owned(self):
+        return self.owner is not None
+
+    def get_upgrade_price(self):
+        """
+        """
+        if not self.hotel and self.houses == 4:
+            return 'hotel', self.prices['hotel']
+        return 'house', self.prices['house']
+
+    def get_rent_cost(self, dice_roll):
+        """
+        When you land on a property, the number of houses decides
+        how much the rent is. When you load on a station, the number
+        of stations owned by the same player decides the price. When
+        you land on a utility, if one is owned, the rent is four times
+        the dice roll. If both utilities are owned, rent is ten times
+        the dice roll.
+        """
+        if self.type == 'property':
+            houses = str(self.houses)
+            if self.hotel:
+                houses = '5'
+            return self.prices['rent'][houses]
+        elif self.type == 'station':
+            owner_portfolio = self.owner.get_portfolio()
+            owner_total_stations = len(owner_portfolio['station'])
+            return self.prices['rent'][str(owner_total_stations)]
+        elif self.type == 'utility':
+            owner_portfolio = self.owner.get_portfolio()
+            owner_total_utilities = len(owner_portfolio['utility'])
+            if owner_total_utilities == 1:
+                return sum(dice_roll) * 4
+            elif owner_total_utilities == 2:
+                return sum(dice_roll) * 10
+            raise ValueError('Unexpectedly found %d utility tiles, expected one or two.' % owner_total_utilities)
