@@ -26,7 +26,7 @@ class Tile(object):
         What happens when our Player
         navigates past this tile?
         """
-        logging.debug('%s has visited "%s".' % (player.nickname, self.name))
+        logging.debug('\t%s has visited "%s".' % (player.nickname, self.name))
 
 
 class NoopTile(Tile):

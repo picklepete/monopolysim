@@ -268,9 +268,9 @@ class Board(object):
                           (player.nickname, player.cash, len(player.portfolio)))
             for tile in player.portfolio:
                 if tile.hotel:
-                    logging.debug('\t%s, with a hotel on it.' % tile.name)
+                    logging.debug('- %s, with a hotel on it.' % tile.name)
                 else:
-                    logging.debug('\t%s, with %d houses on it.' % (tile.name, tile.houses))
+                    logging.debug('- %s, with %d houses on it.' % (tile.name, tile.houses))
         sys.exit(0)
 
     def setup(self):

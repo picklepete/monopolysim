@@ -101,7 +101,7 @@ class Player(object):
         """
         self.wallet.withdraw(price)
         tile.owner.wallet.deposit(price)
-        logging.debug('%s paid %s %d in rent.' % (self.nickname, tile.owner.nickname, price))
+        logging.debug('%s ($%d) paid %s $%d in rent.' % (self.nickname, self.cash, tile.owner.nickname, price))
 
     def purchase_property(self, tile):
         """
@@ -111,7 +111,7 @@ class Player(object):
         price = tile.prices['purchase']
         self.portfolio.append(tile)
         self.wallet.withdraw(price)
-        logging.debug('%s has purchased "%s".' % (self.nickname, tile.name))
+        logging.debug('%s ($%d) has purchased "%s" ($%d).' % (self.nickname, self.cash, tile.name, price))
 
     def upgrade_property(self, tile):
         """
@@ -120,11 +120,12 @@ class Player(object):
         upgrade_type, upgrade_price = tile.get_upgrade_price()
         if upgrade_type == 'hotel':
             tile.hotel = True
-            logging.debug('%s upgraded "%s" to a hotel.' % (self.nickname, tile.name))
+            logging.debug('%s ($%d) upgraded "%s" to a hotel.' % (self.nickname, self.cash, tile.name))
         else:
             tile.houses += 1
-            logging.debug('%s has added a house to "%s", the total is now %d.' % (
+            logging.debug('%s ($%d) has added a house to "%s", the total is now %d.' % (
                 self.nickname,
+                self.cash,
                 tile.name,
                 tile.houses
             ))
@@ -157,7 +158,8 @@ class Player(object):
                         logging.debug('%s chose not to buy "%s".' % (self.nickname, tile.name))
                 else:
                     # Player can't afford it.
-                    logging.debug('%s cannot afford to buy "%s".' % (self.nickname, tile.name))
+                    logging.debug('%s ($%d) cannot afford to buy "%s" ($%d).' %
+                                  (self.nickname, self.cash, tile.name, price))
             elif tile.owner.id == self.id and tile.type == 'property':
                 # Only properties, not stations or utilities, can be upgraded.
                 # This property belongs to this player.
@@ -176,7 +178,8 @@ class Player(object):
                         logging.debug('%s chose not to upgrade "%s".' % (self.nickname, tile.name))
                 else:
                     # Player can't afford the upgrade.
-                    logging.debug('%s cannot afford to upgrade "%s".' % (self.nickname, tile.name))
+                    logging.debug('%s ($%d) cannot afford to upgrade "%s" ($%d).' %
+                                  (self.nickname, self.cash, tile.name, upgrade_price))
             else:
                 # This property belongs to someone else.
                 rent_price = tile.get_rent_cost(dice_roll)
@@ -188,8 +191,8 @@ class Player(object):
                     # TODO: the player can't afford to pay rent.
                     # Once mortgaging has been built, call it here.
                     self.bankrupt = True
-                    logging.debug('%s cannot afford to pay %s rent, they '
-                                  'are bankrupt.' % (self.nickname, tile.owner.nickname))
+                    logging.debug('%s ($%d) cannot afford to pay %s rent ($%d), they '
+                                  'are bankrupt.' % (self.nickname, self.cash, tile.owner.nickname, rent_price))
 
     def handle_transit_tile(self, tile):
         """

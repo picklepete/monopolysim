@@ -1,5 +1,5 @@
 import logging
-logging.basicConfig(format='%(levelname)s: %(message)s', filename='sim.log', level=logging.DEBUG)
+logging.basicConfig(format='%(message)s', filename='sim.log', level=logging.DEBUG)
 
 # How much money do players start with?
 INITIAL_PLAYER_CASH = 2500
