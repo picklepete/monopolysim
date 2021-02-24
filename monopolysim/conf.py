@@ -4,6 +4,9 @@ logging.basicConfig(format='%(levelname)s: %(message)s', filename='sim.log', lev
 # How much money do players start with?
 INITIAL_PLAYER_CASH = 2500
 
+# How much time should there be between turns?
+TURN_PAUSE_DURATION = 0.25
+
 # How much money does a player gain by passing "GO"?
 GO_TRANSIT_PAYMENT = 200
 

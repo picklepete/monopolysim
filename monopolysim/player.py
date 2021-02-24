@@ -12,6 +12,7 @@ class Player(object):
     Represents a single Player playing the game.
 
     - `tile` represents this player's current position on the board.
+    - `portfolio` represents this player's tile portfolio.
     - `cash` represents this player's cash reserves.
     - `token` represents this player's board token (dog, battleship, etc).
     - `in_jail` represents whether or not this player is in jail.
@@ -20,6 +21,7 @@ class Player(object):
     """
     def __init__(self, *args, **kwargs):
         self.id = uuid4().hex
+        self.portfolio = []
         self.tile = kwargs.get('tile', None)
         self.board = getattr(self.tile, 'board', None)
         self.cash = kwargs.get('cash', conf.INITIAL_PLAYER_CASH)
@@ -65,11 +67,15 @@ class Player(object):
 
     def property_purchase_choice(self, purchase_price):
         """
+        What should the Player do when given the option to purchase?
+        By default, if they have the cash, they'll purchase it.
         """
         return conf.PLAYER_PURCHASE_PROPERTY
 
     def property_build_choice(self, upgrade_price):
         """
+        What should the Player do when given the option to upgrade?
+        By default, if they have the cash, they'll upgrade.
         """
         return conf.PLAYER_BUILD_PROPERTY
 
@@ -103,6 +109,7 @@ class Player(object):
         """
         tile.owner = self
         price = tile.prices['purchase']
+        self.portfolio.append(tile)
         self.wallet.withdraw(price)
         logging.debug('%s has purchased "%s".' % (self.nickname, tile.name))
 
@@ -219,6 +226,8 @@ class Player(object):
 
 class PlayerWallet(object):
     """
+    Represents a Player's wallet. Used to have an easy
+    interface for withdrawing and depositing cash.
     """
     def __init__(self, player):
         self.player = player

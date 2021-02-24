@@ -36,13 +36,15 @@ class Board(object):
             - If the tile is CardTile (Chance, Community Chest)
                 - It picks its card, applies its changes.
     """
-    def __init__(self, num_players=4, locale='en-gb'):
+    def __init__(self, num_players=4, locale='en-gb', fast=False):
         self.tiles = []
         self.players = []
         self.turn_order = {}
         self.num_players = num_players
         self.locale = locale
-
+        self.turn_pause = 0
+        if not fast:
+            self.turn_pause = conf.TURN_PAUSE_DURATION
         # The total number of tiles on the board.
         self.total_tile_count = 0
 
@@ -251,7 +253,8 @@ class Board(object):
 
         # Did the player roll double die?
         if not player.bankrupt and dice_roll[0] == dice_roll[1]:
-            logging.debug('%s rolled a double, they get to roll again.' % player.nickname)
+            logging.debug('%s rolled a double (%d & %d), they get to roll again.' %
+                          (player.nickname, dice_roll[0], dice_roll[1]))
             self.handle_play_turn(player)
 
     def handle_game_end(self, players):
@@ -261,7 +264,13 @@ class Board(object):
             logging.debug('There are no active players! Nobody won.')
         if len(players) == 1:
             player = players[0]
-            logging.debug('Hurray, %s won the game!' % player.nickname)
+            logging.debug('Hurray, %s won the game with $%d and %d properties!' %
+                          (player.nickname, player.cash, len(player.portfolio)))
+            for tile in player.portfolio:
+                if tile.hotel:
+                    logging.debug('\t%s, with a hotel on it.' % tile.name)
+                else:
+                    logging.debug('\t%s, with %d houses on it.' % (tile.name, tile.houses))
         sys.exit(0)
 
     def setup(self):
@@ -283,7 +292,7 @@ class Board(object):
                             self.handle_jail_turn(player)
                         else:
                             self.handle_play_turn(player)
-                        sleep(0.25)
+                        sleep(self.turn_pause)
                         logging.debug('-' * 70)
                 else:
                     self.handle_game_end(active_players)
